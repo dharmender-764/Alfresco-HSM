@@ -1,0 +1,71 @@
+<extension>
+    <modules>
+        <module>
+            <id>Add Document Libarary Actions</id>
+            <version>1.0</version>
+            <auto-deploy>true</auto-deploy>
+            <configurations>
+            	<config evaluator="string-compare" condition="DocumentLibrary">
+					<indicators>
+						<indicator id="alfresco.hsmintegration.indicator.signDocument" icon="signDocument-16.png"
+							index="100" label="alfresco.hsmintegration.indicator.signDocument.label">
+                            <evaluator>alfresco.hsmintegration.evaluator.isDigitallySigned</evaluator>
+						</indicator>
+					</indicators>
+				</config>
+                <config evaluator="string-compare" condition="DocLibActions">	
+                    <actions>
+                        <action id="alfresco.hsmintegration.doclib.action.signDocument"
+                                icon="signDocument"
+                                type="javascript"
+                                label="alfresco.hsmintegration.doclib.action.signDocument.label">
+                            <permissions>
+						        <permission allow="true">Write</permission>
+						    </permissions>
+                            <param name="function">onActionFormDialog</param>
+                            <param name="itemKind">action</param>
+				            <param name="itemId">signDocument</param>
+				            <param name="mode">create</param>
+                            <param name="destination">{node.nodeRef}</param>
+                            <param name="successMessage">alfresco.hsmintegration.doclib.action.signDocument.msg.success</param>
+                            <param name="failureMessage">alfresco.hsmintegration.doclib.action.signDocument.msg.failure</param>
+                            <evaluator negate="true">alfresco.hsmintegration.evaluator.isDigitallySigned</evaluator>
+                        </action>
+                    </actions>
+                    
+                    <actionGroups>
+                        <actionGroup id="document-browse">
+                            <action index="400" id="alfresco.hsmintegration.doclib.action.signDocument" />
+                        </actionGroup>
+                        <actionGroup id="document-details">
+                            <action index="400" id="alfresco.hsmintegration.doclib.action.signDocument" />
+                        </actionGroup>
+                    </actionGroups>
+                </config>
+                
+                <config evaluator="string-compare" condition="signDocument">
+                    <forms>
+                        <form>
+                            <field-visibility>
+                                <show id="partitionName"/>
+                                <show id="partitionPassword"/>
+                                <show id="certLabel"/>
+                                <show id="pageNos"/>
+                            </field-visibility>
+                            <appearance>
+                                <field id="partitionName" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.partitionName"/>
+                                <field id="partitionPassword" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.partitionPassword">
+                                    <control>
+                                    	<control-param name="password">true</control-param>
+                                    </control>
+                                </field>
+                                <field id="certLabel" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.certLabel"/>
+                                <field id="pageNos" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.pageNos"/>
+                            </appearance>
+                        </form>
+                    </forms>
+                </config>
+            </configurations>
+        </module>
+    </modules>
+</extension> 

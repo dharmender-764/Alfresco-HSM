@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ipm:contentModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+    <!-- Optional meta-data about the model -->
+    <description>Document Model for Repo Extension X</description>
+    <author>Iprosonic content model for HSM</author>
+    <version>1.0</version>
+
+    <imports>
+        <!-- Import Alfresco Dictionary Definitions -->
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+        <!-- Import Alfresco Content Domain Model Definitions -->
+        <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+        <!-- Import Alfresco System Model Definitions -->
+        `<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+    </imports>
+
+    <!-- Custom namespace for your domain -->
+    <namespaces>
+        <namespace uri="http://www.iprosonic.com/model/content/1.0" prefix="ipm"/>
+    </namespaces>
+
+    <!-- ===============================================================================================================
+        Constraints, Types, and Aspects go here...
+        -->
+        
+    <aspects>
+    	<aspect name="ipm:docuSign">
+    		<title>Digitally signed document aspect</title>
+    		<properties>
+    			<property name="ipm:digitallySigned">
+    				<title>Digitally Signed Document Flag</title>
+    				<type>d:boolean</type>
+    				<index enabled="true">
+    					<atomic>true</atomic>
+    					<stored>false</stored>
+    					<tokenised>both</tokenised>
+    				</index>
+    			</property>
+    			
+    			<property name="ipm:signedLeft">
+    				<title>Flag to check whether document is signed in left of pdf</title>
+    				<type>d:boolean</type>
+    				<index enabled="true">
+    					<atomic>true</atomic>
+    					<stored>false</stored>
+    					<tokenised>both</tokenised>
+    				</index>
+    			</property>
+    			
+    			<property name="ipm:signedMiddle">
+    				<title>Flag to check whether document is signed in middle of pdf</title>
+    				<type>d:boolean</type>
+    				<index enabled="true">
+    					<atomic>true</atomic>
+    					<stored>false</stored>
+    					<tokenised>both</tokenised>
+    				</index>
+    			</property>
+    			
+    			<property name="ipm:signedRight">
+    				<title>Flag to check whether document is signed in right of pdf</title>
+    				<type>d:boolean</type>
+    				<index enabled="true">
+    					<atomic>true</atomic>
+    					<stored>false</stored>
+    					<tokenised>both</tokenised>
+    				</index>
+    			</property>
+    		</properties>
+    	</aspect>
+    </aspects>
+
+</model>
