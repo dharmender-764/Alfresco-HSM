@@ -40,6 +40,8 @@ public class DocuSignActionExecuter extends ActionExecuterAbstractBase {
 	private static final String PARAM_CERT_LABEL = "certLabel";
 
 	private static final String PARAM_PAGE_NOS = "pageNos";
+	
+	private static final String PARAM_SIGN_POSITION = "signPosition";
 
 	private static final String IPRO_NS = "http://www.iprosonic.com/model/content/1.0";
 
@@ -88,6 +90,7 @@ public class DocuSignActionExecuter extends ActionExecuterAbstractBase {
 			throw new ActionServiceException("Invalid request, Please provide all the required details to sign document");
 		}
 		String pageNos = (String) action.getParameterValue(PARAM_PAGE_NOS);
+		String signPosition = (String) action.getParameterValue(PARAM_SIGN_POSITION);
 		
 		String username = authenticationService.getCurrentUserName();
 		HSMUser hsmUser = new HSMUser(username, partitionName, partitionPwd, certLabel);
@@ -115,7 +118,7 @@ public class DocuSignActionExecuter extends ActionExecuterAbstractBase {
 				System.out.println("Reading pdf node: " + nodeRef + " to alfresco tmp file: " + pdfDocument + " success!");
 
 				List<Integer> pageNumbersToSign = getPageNumbersToSign(pageNos, pdfDocument);
-				File signPdfDocument = docuSignService.signDocument(pdfDocument, hsmUser, null);
+				File signPdfDocument = docuSignService.signDocument(pdfDocument, hsmUser, pageNumbersToSign, signPosition);
 				
 				if (signPdfDocument != null) {
 					System.out.println("pdf node: " + nodeRef + " signed successful with certlabel: " + certLabel);
@@ -199,7 +202,7 @@ public class DocuSignActionExecuter extends ActionExecuterAbstractBase {
 
 	@Override
 	protected void addParameterDefinitions(List<ParameterDefinition> paramList) {
-		for (String s : new String[]{PARAM_PARTITION_NAME, PARAM_PARTITION_PASSWORD, PARAM_CERT_LABEL, PARAM_PAGE_NOS}) {
+		for (String s : new String[]{PARAM_PARTITION_NAME, PARAM_PARTITION_PASSWORD, PARAM_CERT_LABEL, PARAM_PAGE_NOS, PARAM_SIGN_POSITION}) {
             paramList.add(new ParameterDefinitionImpl(s, DataTypeDefinition.TEXT, true, getParamDisplayLabel(s)));
         }
 	}

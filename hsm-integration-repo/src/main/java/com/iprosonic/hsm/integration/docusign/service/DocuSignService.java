@@ -8,10 +8,11 @@ import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -36,12 +37,10 @@ public class DocuSignService {
 	public static void main(String[] args) {
 		File pdfDocument = new File("C:/Users/Public/P2P2MUKTA.pdf");
 		HSMUser hsmUser = new HSMUser("dhsi", "par1", "userpin", "YashKey");
-		Map<Integer, String> pagesToSign = new HashMap<>();
-		pagesToSign.put(1, "middle");
-		new DocuSignService().signDocument(pdfDocument, hsmUser, pagesToSign);
+		new DocuSignService().signDocument(pdfDocument, hsmUser, Arrays.asList(new Integer[] {1}), "bottommiddle");
 	}
 	
-	public File signDocument(File pdfDocument, HSMUser hsmUser, Map<Integer, String> pagesToSign) {
+	public File signDocument(File pdfDocument, HSMUser hsmUser, List<Integer> pagesToSign, String signPosition) {
 		PrivateKey priv = null;
 		Certificate[] chain = null;
 		String certLabel = hsmUser.getCertLabel();
@@ -66,15 +65,7 @@ public class DocuSignService {
 		
 		File signedPdfDocument = null;
 		String fileExtension = FilenameUtils.getExtension(pdfDocument.getName());
-		for (Map.Entry<Integer, String> pageToSign : pagesToSign.entrySet()) {
-			Integer pageNo = pageToSign.getKey();
-			int positionX = 100;
-			if ("middle".equalsIgnoreCase(pageToSign.getValue())) {
-				positionX = 120;
-			} else if ("right".equalsIgnoreCase(pageToSign.getValue())) {
-				positionX = 130;
-			}
-			
+		for (Integer pageNo : pagesToSign) {
 			signedPdfDocument = new File(pdfDocument.getAbsolutePath().replace("." + fileExtension, "_" + pageNo + ".pdf"));
 			try {
 				PdfReader reader = new PdfReader(pdfDocument.getAbsolutePath());
@@ -87,7 +78,8 @@ public class DocuSignService {
 				Date date = new Date();
 				cal.setTime(date);
 				sap.setSignDate(cal);
-				sap.setVisibleSignature(new Rectangle(100, 100, 200, 200), pageNo, "signature on page: " + pageNo);
+				
+				sap.setVisibleSignature(getSignRect(reader, pageNo, signPosition), pageNo, "signature on page: " + pageNo);
 	
 				sap.setCrypto(priv, chain, null, PdfSignatureAppearance.WINCER_SIGNED);
 	
@@ -135,6 +127,43 @@ public class DocuSignService {
 			pdfDocument = signedPdfDocument;
 		}
 		return signedPdfDocument;
+	}
+	
+	private Rectangle getSignRect(PdfReader reader, Integer pageNo, String position) {
+		Rectangle cropBox = reader.getCropBox(1);
+		float width = 60;
+	    float height = 60;
+	    float pageWidth = cropBox.getWidth();
+	    Rectangle rectangle = null;
+	    
+	    if ("topleft".equalsIgnoreCase(position)) {
+	    	// Top left
+	    	rectangle = new Rectangle(cropBox.getLeft(50), cropBox.getTop(50),
+	                              cropBox.getLeft(50 + width), cropBox.getTop(50 + height));
+	    } else if ("topmiddle".equalsIgnoreCase(position)) {
+	    	// Top middle
+	    	float llx = (pageWidth/2) - (width/2);
+	    	rectangle = new Rectangle(cropBox.getLeft(llx), cropBox.getTop(50),
+	                              cropBox.getLeft(llx + width), cropBox.getTop(50 + height));
+	    } else if ("topright".equalsIgnoreCase(position)) {
+	    	// Top right
+	    	rectangle = new Rectangle(cropBox.getRight(width + 50), cropBox.getTop(50),
+	                              cropBox.getRight(50), cropBox.getTop(50 + height));
+	    } else if ("bottomleft".equalsIgnoreCase(position)) {
+	    	// Bottom left
+	    	rectangle = new Rectangle(cropBox.getLeft(50), cropBox.getBottom(50),
+	                              cropBox.getLeft(50 + width), cropBox.getBottom(50 + height));
+	    } else if ("bottommiddle".equalsIgnoreCase(position)) {
+	    	// Bottom middle
+	    	float llx = (pageWidth/2) - (width/2);
+	    	rectangle = new Rectangle(cropBox.getLeft(llx), cropBox.getBottom(50),
+	                              cropBox.getLeft(llx + width), cropBox.getBottom(50 + height));
+	    } else {
+	    	// Default to bottom right
+	    	rectangle = new Rectangle(cropBox.getRight(50 + width), cropBox.getBottom(50),
+	                              cropBox.getRight(50), cropBox.getBottom(50 + height));
+	    }
+		return rectangle;
 	}
 
 }
