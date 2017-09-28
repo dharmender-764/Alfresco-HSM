@@ -51,6 +51,7 @@
                                 <show id="partitionPassword"/>
                                 <show id="certLabel"/>
                                 <show id="pageNos"/>
+                                <show id="signPosition"/>
                             </field-visibility>
                             <appearance>
                                 <field id="partitionName" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.partitionName"/>
@@ -61,6 +62,11 @@
                                 </field>
                                 <field id="certLabel" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.certLabel"/>
                                 <field id="pageNos" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.pageNos"/>
+                                <field id="signPosition" label-id="alfresco.hsmintegration.doclib.action.signDocument.form.field.signPosition">
+						          <control template="/org/alfresco/components/form/controls/selectone.ftl">
+						            <control-param name="options">leftbottom|LEFT BOTTOM,middlebottom|MIDDLE BOTTOM,rightbottom|RIGHT BOTTOM,lefttop|LEFT TOP,middletop|MIDDLE TOP,righttop|RIGHT TOP</control-param>
+						          </control>
+						        </field>
                             </appearance>
                         </form>
                     </forms>

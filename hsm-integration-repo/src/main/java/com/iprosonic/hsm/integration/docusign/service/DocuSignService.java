@@ -1,6 +1,7 @@
 package com.iprosonic.hsm.integration.docusign.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -41,27 +42,21 @@ public class DocuSignService {
 	}
 	
 	public File signDocument(File pdfDocument, HSMUser hsmUser, List<Integer> pagesToSign, String signPosition) {
-		PrivateKey priv = null;
-		Certificate[] chain = null;
-		String certLabel = hsmUser.getCertLabel();
-		String partitionName = hsmUser.getPartitionName();
-		try {
-			if (Security.getProvider("LunaProvider") == null) {
-				Security.insertProviderAt(new com.safenetinc.luna.provider.LunaProvider(), 2);
+		Object[] signature = loadSignatureFromHsmKS(hsmUser);
+		if (signature == null) {
+			System.err.println("Unable to load signature from HSM keystore, Using local keystore signature: ");
+			signature = loadSignatureFromLocalKS();
+			if (signature == null) {
+				System.err.println("Error loading signature from HSM and local KS, skipping digital signing...");
+				return null;
 			}
-	
-			Security.addProvider(new LunaProvider());
-			hsmConnection.login(partitionName, hsmUser.getPartitionPassword());
-	
-			KeyStore ks = KeyStore.getInstance("Luna");
-			ks.load(null, hsmUser.getPartitionPassword().toCharArray());
-	
-			priv = (PrivateKey) ks.getKey(certLabel, null);
-			chain = ks.getCertificateChain(certLabel);
-		} catch (Exception e) {
-			System.err.println("Unable to load digital signature from keystore with certLabel: " + certLabel + " and partitioname: " + partitionName +", skipping pdf signing");
-			return null;
 		}
+		return signDocument(pdfDocument, hsmUser, pagesToSign, signPosition, signature);
+	}
+	
+	public File signDocument(File pdfDocument, HSMUser hsmUser, List<Integer> pagesToSign, String signPosition, Object[] signature) {
+		PrivateKey priv = (PrivateKey) signature[0];
+		Certificate[] chain = (Certificate[]) signature[1];
 		
 		File signedPdfDocument = null;
 		String fileExtension = FilenameUtils.getExtension(pdfDocument.getName());
@@ -79,7 +74,7 @@ public class DocuSignService {
 				cal.setTime(date);
 				sap.setSignDate(cal);
 				
-				sap.setVisibleSignature(getSignRect(reader, pageNo, signPosition), pageNo, "signature on page: " + pageNo);
+				sap.setVisibleSignature(getSignRect(reader, pageNo, signPosition), pageNo, "Digital signed at: " + System.currentTimeMillis());
 	
 				sap.setCrypto(priv, chain, null, PdfSignatureAppearance.WINCER_SIGNED);
 	
@@ -164,6 +159,49 @@ public class DocuSignService {
 	                              cropBox.getRight(50), cropBox.getBottom(50 + height));
 	    }
 		return rectangle;
+	}
+	
+	public Object[] loadSignatureFromHsmKS(HSMUser hsmUser) {
+		PrivateKey priv = null;
+		Certificate[] chain = null;
+		String certLabel = hsmUser.getCertLabel();
+		String partitionName = hsmUser.getPartitionName();
+		try {
+			if (Security.getProvider("LunaProvider") == null) {
+				Security.insertProviderAt(new com.safenetinc.luna.provider.LunaProvider(), 2);
+			}
+	
+			Security.addProvider(new LunaProvider());
+			hsmConnection.login(partitionName, hsmUser.getPartitionPassword());
+	
+			KeyStore ks = KeyStore.getInstance("Luna");
+			ks.load(null, hsmUser.getPartitionPassword().toCharArray());
+	
+			priv = (PrivateKey) ks.getKey(certLabel, null);
+			chain = ks.getCertificateChain(certLabel);
+		} catch (Exception e) {
+			System.err.println("Unable to load digital signature from hsm keystore with certLabel: " + certLabel + " and partitioname: " + partitionName +", skipping pdf signing");
+			return null;
+		}
+		return new Object[] { priv, chain };
+	}
+	
+	public Object[] loadSignatureFromLocalKS() {
+		PrivateKey priv = null;
+		Certificate[] chain = null;
+		try {
+			FileInputStream pkcs12Stream = new FileInputStream ("C:\\Users\\prachi\\signature.pfx");
+			KeyStore ks = KeyStore.getInstance("PKCS12");
+			ks.load(pkcs12Stream, "mypassword".toCharArray());
+			
+			priv = (PrivateKey) ks.getKey("myalias", "mypassword".toCharArray());
+			chain = ks.getCertificateChain("myalias");
+			pkcs12Stream.close();
+		} catch (Exception e) {
+			System.err.println("Unable to load digital signature from local keystore");
+			return null;
+		}
+		return new Object[] { priv, chain };
 	}
 
 }

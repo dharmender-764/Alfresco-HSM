@@ -97,13 +97,13 @@ public class DocuSignActionExecuter extends ActionExecuterAbstractBase {
 		
 		if (nodeService.exists(nodeRef)) {
 			boolean alreadySigned = false;
-			if (nodeService.hasAspect(nodeRef, ASPECT_DOCU_SIGN)) {
+			/*if (nodeService.hasAspect(nodeRef, ASPECT_DOCU_SIGN)) {
 				Serializable digitallySignedValue = nodeService.getProperty(nodeRef, PROP_DIGITALLY_SIGNED);
 				if (digitallySignedValue != null) {
 					System.out.println("Document already signed: " + digitallySignedValue.toString());
 					alreadySigned = Boolean.valueOf(digitallySignedValue.toString());
 				}
-			}
+			}*/
 			
 			if (alreadySigned) {
 				System.out.println("node: " + nodeRef + " already signed, can not sign it again!");
